@@ -26,4 +26,9 @@ public class Task {
     public String getDescription() {  //getter
         return description;
     }
+
+    public String toString() {  //a method that returns a string
+        String status = isDone ? "[X]" : "[ ]";
+        return status + " " + description;
+    }
 }

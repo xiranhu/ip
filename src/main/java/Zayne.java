@@ -27,9 +27,9 @@ public class Zayne {
     private static Task[] tasks = new Task[MAX_TASKS]; // array to store all task inputs
     private static int taskCount = 0; // counter
 
-    public static void addTask(Task task) { //add a string to the array
+    public static void addTask(Task task) { //add a task to the array
         if (taskCount < MAX_TASKS) {
-            tasks[taskCount] = task; //stores the n^th task input at the tasks[n-1]
+            tasks[taskCount] = task; // store the n^th task input at tasks[n]
             taskCount++;
             System.out.println("____________________________________________________________");
             System.out.println(" Got it. I've added this task:");
@@ -41,7 +41,7 @@ public class Zayne {
         }
     }
 
-    public static void listTasks() { //list out the strings stored in the array
+    public static void listTasks() { //list out all tasks
         System.out.println("____________________________________________________________");
         System.out.println("Here are the tasks in your list: ");
         for (int i = 0; i < taskCount; i++) {

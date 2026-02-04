@@ -11,18 +11,19 @@ public class Zayne {
     }
 
     public static void greet() { //method for greeting user
-        System.out.println("____________________________________________________________");
+        System.out.println(DIVIDER);
         System.out.println("Hello! I'm Zayne");
         System.out.println("What can I do for you?");
-        System.out.println("____________________________________________________________");
+        System.out.println(DIVIDER);
     }
 
     public static void bye() { //method for saying bye to user
-        System.out.println("____________________________________________________________");
+        System.out.println(DIVIDER);
         System.out.println("Bye. Hope to see you again soon!");
-        System.out.println("____________________________________________________________");
+        System.out.println(DIVIDER);
     }
 
+    private static final String DIVIDER = "____________________________________________________________";
     private static final int MAX_TASKS = 100; // maximum tasks by default
     private static Task[] tasks = new Task[MAX_TASKS]; // array to store all task inputs
     private static int taskCount = 0; // counter
@@ -31,23 +32,23 @@ public class Zayne {
         if (taskCount < MAX_TASKS) {
             tasks[taskCount] = task; // store the n^th task input at tasks[n]
             taskCount++;
-            System.out.println("____________________________________________________________");
+            System.out.println(DIVIDER);
             System.out.println(" Got it. I've added this task:");
             System.out.println("  " + task); //the task here is actually task.toString()
             System.out.println(" Now you have " + taskCount + " tasks in the list.");
-            System.out.println("____________________________________________________________");
+            System.out.println(DIVIDER);
         } else {
             System.out.println("Task list is full! Cannot add more tasks.");
         }
     }
 
     public static void listTasks() { //list out all tasks
-        System.out.println("____________________________________________________________");
+        System.out.println(DIVIDER);
         System.out.println("Here are the tasks in your list: ");
         for (int i = 0; i < taskCount; i++) {
             System.out.println(" " + (i + 1) + "." + tasks[i]); //print index, status and task name
         }
-        System.out.println("____________________________________________________________");
+        System.out.println(DIVIDER);
     }
 
     public static void main(String[] args) {
@@ -59,53 +60,66 @@ public class Zayne {
 
         while (true) {
             command = sc.nextLine().trim();
+
             if (command.equalsIgnoreCase("bye")) {
                 bye();
                 break;
-            } else if (command.equalsIgnoreCase("list")) {
+            }
+
+            if (command.equalsIgnoreCase("list")) {
                 listTasks();
-            } else if (command.startsWith("mark ")) {
+                continue;
+            }
+
+            if (command.startsWith("mark ")) {
                 String[] parts = command.split(" "); //split the command input whenever there is a space. split components are stored into an array called parts.
                 if (parts.length == 2) { //if the command is "mark 2", "mark" is stored at parts[0] and "2" is stored at parts[1]
                     int index = Integer.parseInt(parts[1]) - 1; //when we list out, the index starts at 1; but in the array the index starts at 0; so we must -1 here to match the array index
-
                     if (index >= 0 && index < taskCount) {
                         tasks[index].markDone(); //set the state to "done" when mark command is the input
-                        System.out.println("____________________________________________________________");
+                        System.out.println(DIVIDER);
                         System.out.println(" Nice! I've marked this task as done:");
                         System.out.println(" " + tasks[index]);
-                        System.out.println("____________________________________________________________");
+                        System.out.println(DIVIDER);
                     } else {
                         System.out.println("Invalid task number.");
                     }
                 } else {
                     System.out.println("Usage: mark <task number>");
                 }
-            } else if (command.startsWith("unmark ")) {
+                continue;
+            }
+
+            if (command.startsWith("unmark ")) {
                 String[] parts = command.split(" ");
                 if (parts.length == 2) {
                     int index = Integer.parseInt(parts[1]) - 1;
-
                     if (index >= 0 && index < taskCount) {
                         tasks[index].unmark();  //set the state back to not done when command is to unmark
-                        System.out.println("____________________________________________________________");
+                        System.out.println(DIVIDER);
                         System.out.println(" OK, I've marked this task as not done yet:");
                         System.out.println(" " + tasks[index]);
-                        System.out.println("____________________________________________________________");
+                        System.out.println(DIVIDER);
                     } else {
                         System.out.println("Invalid task number.");
                     }
                 } else {
                         System.out.println("Usage: unmark <task number>");
                 }
-            } else if (command.startsWith("todo ")) {
+                continue;
+            }
+
+            if (command.startsWith("todo ")) {
                 String description = command.substring(5).trim(); // extracts everything after "todo " (5 characters including space) as the task description
                 if (!description.isEmpty()) {
                     addTask(new Todo(description));
                 } else {
                     System.out.println("The description of a todo cannot be empty.");
                 }
-            } else if (command.startsWith("deadline ")) {
+                continue;
+            }
+
+            if (command.startsWith("deadline ")) {
                 int byIndex = command.indexOf("/by");
                 if (byIndex != -1) {  // ensures that "/by" actually exists in the command
                     String description = command.substring(9, byIndex).trim(); // starts from index 9 to skip "deadline ", extracts the task description
@@ -118,7 +132,10 @@ public class Zayne {
                 } else {
                     System.out.println("Invalid deadline format. Use: deadline <desc> /by <date>");
                 }
-            } else if (command.startsWith("event ")) { //new Event input
+                continue;
+            }
+
+            if (command.startsWith("event ")) { //new Event input
                 // expected format: event <desc> /from <start> /to <end>
                 int fromIndex = command.indexOf("/from");
                 int toIndex = command.indexOf("/to");
@@ -134,11 +151,10 @@ public class Zayne {
                 } else {
                     System.out.println("Invalid event format. Use: event <desc> /from <start> /to <end>");
                 }
-            } else if (!command.isEmpty()) { // addTask is put at the end of the while loop, because all other inputs before are special cases and should be evaluated first. if they are put after addTask, they will be treated as a new task and be added to the list.
-                addTask(new Task(command));
-            } else {
-                System.out.println("Please enter a valid task.");
+                continue;
             }
+
+            System.out.println("Please enter a valid task.");
         }
         sc.close();
     }

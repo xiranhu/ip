@@ -51,39 +51,31 @@ public class Zayne {
         printDivider();
     }
 
-    private static void handleMarkCommand(String command) {
+    private static void handleMarkCommand(String command) throws InputException {
         boolean isMark = command.startsWith("mark ");
         boolean isUnmark = command.startsWith("unmark ");
 
         String[] parts = command.split(" "); //split the command input whenever there is a space. split components are stored into an array called parts.
 
         if (parts.length != 2) {  //handle invalid command
-            System.out.println("Usage: mark/unmark <task number>");
-            return;
+            throw new InputException("Usage: mark/unmark <task number>");
         }
 
-        int index = Integer.parseInt(parts[1]) - 1; //when we list out, the index starts at 1; but in the array the index starts at 0; so we must -1 here to match the array index
-
-        if (!isValidIndex(index)) {
-            System.out.println("Invalid task number.");
-            return;
-        }
-
-        if (isMark) {
-            tasks[index].markDone();
-            printDivider();
-            System.out.println(" Nice! I've marked this task as done:");
-            System.out.println(" " + tasks[index]);
-            printDivider();
-            return;
-        }
-
-        if (isUnmark) {
-            tasks[index].unmark();
-            printDivider();
-            System.out.println(" OK, I've marked this task as not done yet:");
-            System.out.println(" " + tasks[index]);
-            printDivider();
+        try {
+            int index = Integer.parseInt(parts[1]) - 1; //when we list out, the index starts at 1; but in the array the index starts at 0; so we must -1 here to match the array index
+            if (!isValidIndex(index)) {
+                throw new InputException("Invalid task number. I don't have that many tasks!");
+            }
+            if (isMark) {
+                tasks[index].markDone();
+                System.out.println("Nice! I've marked this task as done:\n  " + tasks[index]);
+            }
+            if (isUnmark){
+                tasks[index].unmark();
+                System.out.println("OK, I've marked this task as not done yet:\n  " + tasks[index]);
+            }
+        } catch (NumberFormatException e) {
+            throw new InputException("Please provide a valid number after mark/unmark.");
         }
     }
 
@@ -95,43 +87,39 @@ public class Zayne {
         System.out.println(DIVIDER);
     }
 
-    private static void handleTodo(String command) {
+    private static void handleTodo(String command) throws InputException {
         String taskDescription = command.substring(5).trim(); // extracts everything after "todo " (5 characters including space) as the task taskDescription
 
         if (taskDescription.isEmpty()) {
-            System.out.println("The task description of a todo cannot be empty.");
-            return;
+            throw new InputException("The task description of a todo cannot be empty.");
         }
 
         addTask(new Todo(taskDescription));
     }
 
-    private static void handleDeadline(String command) {
+    private static void handleDeadline(String command) throws InputException {
         int indexOfBy = command.indexOf("/by");
 
         if (indexOfBy== -1) {
-            System.out.println("Invalid deadline format. Use: deadline <desc> /by <date>");
-            return;
+            throw new InputException("Invalid deadline format. Use: deadline <desc> /by <date>");
         }
 
         String taskDescription = command.substring(9, indexOfBy).trim(); // starts from index 9 to skip "deadline ", extracts the task description
         String by = command.substring(indexOfBy + 3).trim(); // +3 skips past "/by", extracts the deadline date/time
 
         if (taskDescription.isEmpty() || by.isEmpty()) {
-            System.out.println("Invalid deadline format. Use: deadline <desc> /by <date>");
-            return;
+            throw new InputException("The description and date of a deadline cannot be empty.");
         }
 
         addTask(new Deadline(taskDescription, by));
     }
 
-    private static void handleEvent(String command) {
+    private static void handleEvent(String command) throws InputException {
         int indexOfFrom = command.indexOf("/from");
         int indexOfTo = command.indexOf("/to");
 
         if (indexOfFrom == -1 || indexOfTo == -1 || indexOfTo <= indexOfFrom) {
-            System.out.println("Invalid event format. Use: event <desc> /from <start> /to <end>");
-            return;
+            throw new InputException("Invalid event format. Use: event <desc> /from <start> /to <end>");
         }
 
         String taskDescription = command.substring(6, indexOfFrom).trim();  // starts from index 6 to skip "event ", extracts the event description
@@ -139,8 +127,7 @@ public class Zayne {
         String to = command.substring(indexOfTo + 3).trim();  // +3 skips past "/to", extracts the end time
 
         if (taskDescription.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            System.out.println("Invalid event format. Use: event <desc> /from <start> /to <end>");
-            return;
+            throw new InputException("Event details (desc, from, to) cannot be empty.");
         }
 
         addTask(new Event(taskDescription, from, to));
@@ -155,38 +142,37 @@ public class Zayne {
 
         while (true) {
             command = sc.nextLine().trim();
-
-            if (command.equalsIgnoreCase("bye")) {
-                bye();
-                break;
+            try {
+                if (command.equalsIgnoreCase("bye")) {
+                    bye();
+                    break;
+                }
+                if (command.equalsIgnoreCase("list")) {
+                    listTasks();
+                    continue;
+                }
+                if (command.startsWith("mark") || command.startsWith("unmark")) {
+                    handleMarkCommand(command);
+                    continue;
+                }
+                if (command.startsWith("todo ")) {
+                    handleTodo(command);
+                    continue;
+                }
+                if (command.startsWith("deadline ")) {
+                    handleDeadline(command);
+                    continue;
+                }
+                if (command.startsWith("event ")) {
+                    handleEvent(command);
+                    continue;
+                }
+                throw new InputException("Invalid Command Keyword.");
+            } catch (InputException e) {
+                printDivider();
+                System.out.println(" OOPS!!! " + e.getMessage());
+                printDivider();
             }
-
-            if (command.equalsIgnoreCase("list")) {
-                listTasks();
-                continue;
-            }
-
-            if (command.startsWith("mark ") || command.startsWith("unmark ")) {
-                handleMarkCommand(command);
-                continue;
-            }
-
-            if (command.startsWith("todo ")) {
-                handleTodo(command);
-                continue;
-            }
-
-            if (command.startsWith("deadline ")) {
-                handleDeadline(command);
-                continue;
-            }
-
-            if (command.startsWith("event ")) {
-                handleEvent(command);
-                continue;
-            }
-
-            System.out.println("Please enter a valid task.");
         }
         sc.close();
     }

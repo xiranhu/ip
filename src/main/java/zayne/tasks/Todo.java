@@ -1,3 +1,5 @@
+package zayne.tasks;
+
 public class Todo extends Task{
     public Todo(String description) { //Constructor
         super(description);  //inherit the properties of "Task"

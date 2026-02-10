@@ -1,3 +1,5 @@
+package zayne.tasks;
+
 public class Deadline extends Task{
     private String by; //declare a new variable only accessed by this class
 

@@ -1,4 +1,10 @@
+package zayne;
 import java.util.Scanner;
+import zayne.tasks.Task;
+import zayne.tasks.Todo;
+import zayne.tasks.Deadline;
+import zayne.tasks.Event;
+import zayne.exceptions.InputException;
 
 public class Zayne {
     private static void logo() { //method for printing logo
@@ -32,28 +38,24 @@ public class Zayne {
         if (taskCount < MAX_TASKS) {
             tasks[taskCount] = task; // store the n^th task input at tasks[n]
             taskCount++;
-            printDivider();
             System.out.println(" Got it. I've added this task:");
             System.out.println("  " + task); //the task here is actually task.toString()
             System.out.println(" Now you have " + taskCount + " tasks in the list.");
-            printDivider();
         } else {
             System.out.println("Task list is full! Cannot add more tasks.");
         }
     }
 
     private static void listTasks() { //list out all tasks
-        printDivider();
         System.out.println("Here are the tasks in your list: ");
         for (int i = 0; i < taskCount; i++) {
             System.out.println(" " + (i + 1) + "." + tasks[i]); //print index, status and task name
         }
-        printDivider();
     }
 
     private static void handleMarkCommand(String command) throws InputException {
-        boolean isMark = command.startsWith("mark ");
-        boolean isUnmark = command.startsWith("unmark ");
+        boolean isMark = command.startsWith("mark");
+        boolean isUnmark = command.startsWith("unmark");
 
         String[] parts = command.split(" "); //split the command input whenever there is a space. split components are stored into an array called parts.
 
@@ -147,29 +149,34 @@ public class Zayne {
                     bye();
                     break;
                 }
+                printDivider();
                 if (command.equalsIgnoreCase("list")) {
                     listTasks();
+                    printDivider();
                     continue;
                 }
                 if (command.startsWith("mark") || command.startsWith("unmark")) {
                     handleMarkCommand(command);
+                    printDivider();
                     continue;
                 }
                 if (command.startsWith("todo ")) {
                     handleTodo(command);
+                    printDivider();
                     continue;
                 }
                 if (command.startsWith("deadline ")) {
                     handleDeadline(command);
+                    printDivider();
                     continue;
                 }
                 if (command.startsWith("event ")) {
                     handleEvent(command);
+                    printDivider();
                     continue;
                 }
                 throw new InputException("Invalid Command Keyword.");
             } catch (InputException e) {
-                printDivider();
                 System.out.println(" OOPS!!! " + e.getMessage());
                 printDivider();
             }

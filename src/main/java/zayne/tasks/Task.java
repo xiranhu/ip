@@ -33,4 +33,9 @@ public class Task {
         String status = isDone ? "[X]" : "[ ]";
         return status + " " + description;
     }
+
+    public String toFileString() {
+        String done = isDone ? "1" : "0";
+        return "T | " + done + " | " + description;
+    }
 }

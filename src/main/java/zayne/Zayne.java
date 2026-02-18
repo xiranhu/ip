@@ -1,4 +1,5 @@
 package zayne;
+import java.util.ArrayList;
 import java.util.Scanner;
 import zayne.tasks.Task;
 import zayne.tasks.Todo;
@@ -31,16 +32,14 @@ public class Zayne {
 
     private static final String DIVIDER = "____________________________________________________________";
     private static final int MAX_TASKS = 100; // maximum tasks by default
-    private static Task[] tasks = new Task[MAX_TASKS]; // array to store all task inputs
-    private static int taskCount = 0; // counter
+    private static ArrayList<Task> tasks = new ArrayList<>();
 
     private static void addTask(Task task) { //add a task to the array
-        if (taskCount < MAX_TASKS) {
-            tasks[taskCount] = task; // store the n^th task input at tasks[n]
-            taskCount++;
+        if (tasks.size() < MAX_TASKS) {
+            tasks.add(task); // store the n^th task input at tasks[n]
             System.out.println(" Got it. I've added this task:");
             System.out.println("  " + task); //the task here is actually task.toString()
-            System.out.println(" Now you have " + taskCount + " tasks in the list.");
+            System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
         } else {
             System.out.println("Task list is full! Cannot add more tasks.");
         }
@@ -48,8 +47,8 @@ public class Zayne {
 
     private static void listTasks() { //list out all tasks
         System.out.println("Here are the tasks in your list: ");
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println(" " + (i + 1) + "." + tasks[i]); //print index, status and task name
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println(" " + (i + 1) + "." + tasks.get(i)); //print index, status and task name
         }
     }
 
@@ -69,12 +68,12 @@ public class Zayne {
                 throw new InputException("Invalid task number. I don't have that many tasks!");
             }
             if (isMark) {
-                tasks[index].markDone();
-                System.out.println("Nice! I've marked this task as done:\n  " + tasks[index]);
+                tasks.get(index).markDone();
+                System.out.println("Nice! I've marked this task as done:\n  " + tasks.get(index));
             }
             if (isUnmark){
-                tasks[index].unmark();
-                System.out.println("OK, I've marked this task as not done yet:\n  " + tasks[index]);
+                tasks.get(index).unmark();
+                System.out.println("OK, I've marked this task as not done yet:\n  " + tasks.get(index));
             }
         } catch (NumberFormatException e) {
             throw new InputException("Please provide a valid number after mark/unmark.");
@@ -82,7 +81,7 @@ public class Zayne {
     }
 
     private static boolean isValidIndex(int index) {
-        return index >= 0 && index < taskCount;
+        return index >= 0 && index < tasks.size();
     }
 
     private static void printDivider() {
@@ -135,6 +134,25 @@ public class Zayne {
         addTask(new Event(taskDescription, from, to));
     }
 
+    private static void handleDelete(String command) throws InputException {
+        String[] parts = command.split(" ");
+        if (parts.length != 2) {
+            throw new InputException("Usage: delete <task number>");
+        }
+        try {
+            int index = Integer.parseInt(parts[1]) - 1;
+            if (!isValidIndex(index)) {
+                throw new InputException("I can't delete what isn't there! Invalid task number.");
+            }
+            Task removedTask = tasks.remove(index);
+            System.out.println(" Noted. I've removed this task:");
+            System.out.println("   " + removedTask);
+            System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
+        } catch (NumberFormatException e) {
+            throw new InputException("Please provide a valid number after 'delete'.");
+        }
+    }
+
     public static void main(String[] args) {
         logo();
         greet();
@@ -152,6 +170,11 @@ public class Zayne {
                 printDivider();
                 if (command.equalsIgnoreCase("list")) {
                     listTasks();
+                    printDivider();
+                    continue;
+                }
+                if (command.startsWith("delete ")) {
+                    handleDelete(command);
                     printDivider();
                     continue;
                 }

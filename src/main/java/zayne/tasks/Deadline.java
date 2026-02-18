@@ -17,4 +17,9 @@ public class Deadline extends Task{
         return "[D]" + super.toString() + " (by: " + by + ")";
     }
 
+    @Override
+    public String toFileString() {
+        String done = isDone() ? "1" : "0";
+        return "D | " + done + " | " + getDescription() + " | " + by;
+    }
 }

@@ -6,6 +6,10 @@ import zayne.tasks.Todo;
 import zayne.tasks.Deadline;
 import zayne.tasks.Event;
 import zayne.exceptions.InputException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
 public class Zayne {
     private static void logo() { //method for printing logo
@@ -43,6 +47,7 @@ public class Zayne {
         } else {
             System.out.println("Task list is full! Cannot add more tasks.");
         }
+        saveTasks();
     }
 
     private static void listTasks() { //list out all tasks
@@ -78,6 +83,7 @@ public class Zayne {
         } catch (NumberFormatException e) {
             throw new InputException("Please provide a valid number after mark/unmark.");
         }
+        saveTasks();
     }
 
     private static boolean isValidIndex(int index) {
@@ -147,13 +153,84 @@ public class Zayne {
             Task removedTask = tasks.remove(index);
             System.out.println(" Noted. I've removed this task:");
             System.out.println("   " + removedTask);
+            saveTasks();
             System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
         } catch (NumberFormatException e) {
             throw new InputException("Please provide a valid number after 'delete'.");
         }
     }
 
+    private static void saveTasks() {
+        try {
+            File folder = new File("data");
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+
+            FileWriter fw = new FileWriter("data/zayne.txt");
+
+            for (int i = 0; i < tasks.size(); i++) {
+                Task t = tasks.get(i);
+                fw.write(t.toFileString() + "\n");
+            }
+
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("Error saving: " + e.getMessage());
+        }
+    }
+
+    private static void loadTasks() {
+        File f = new File("data/zayne.txt");
+
+        if (!f.exists()) {
+            System.out.println("No saved tasks found. Starting with a fresh list!");
+            return;
+        }
+
+        try {
+            Scanner s = new Scanner(f);
+
+            while (s.hasNextLine()) {
+                String line = s.nextLine();
+                String[] parts = line.split(" \\| ");
+
+                String type = parts[0];
+                boolean isDone = parts[1].equals("1");
+                String description = parts[2];
+
+                Task task = null;
+
+                if (type.equals("T")) {
+                    task = new Todo(description);
+                }
+                else if (type.equals("D")) {
+                    String by = parts[3];
+                    task = new Deadline(description, by);
+                }
+                else if (type.equals("E")) {
+                    String from = parts[3];
+                    String to = parts[4];
+                    task = new Event(description, from, to);
+                }
+
+                if (task != null) {
+                    if (isDone) {
+                        task.markDone();
+                    }
+                    tasks.add(task);
+                }
+            }
+
+            s.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Error loading file.");
+        }
+    }
+
+
     public static void main(String[] args) {
+        loadTasks();
         logo();
         greet();
 

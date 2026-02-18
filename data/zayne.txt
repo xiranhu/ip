@@ -1,0 +1,4 @@
+T | 0 | eat
+T | 0 | rest
+T | 1 | ok nice
+E | 1 | ieie | 5 | 6

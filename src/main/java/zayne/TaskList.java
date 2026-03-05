@@ -40,4 +40,18 @@ public class TaskList {
         System.out.println(" Noted. I've removed this task:\n  " + removed);
         System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
     }
+
+    public void findTasks(String keyword) {
+        System.out.println(" Here are the matching tasks in your list:");
+        int matchCount = 0;
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).getDescription().toLowerCase().contains(keyword.toLowerCase())) {
+                matchCount++;
+                System.out.println(" " + matchCount + "." + tasks.get(i));
+            }
+        }
+        if (matchCount == 0) {
+            System.out.println(" No tasks match your keyword: " + keyword);
+        }
+    }
 }

@@ -19,6 +19,8 @@ public class Parser {
             handleEvent(fullCommand, tasks);
         } else if (fullCommand.startsWith("delete")) {
             handleDelete(fullCommand, tasks);
+        } else if (fullCommand.startsWith("find")) {
+            handleFind(fullCommand, tasks);
         } else {
             throw new InputException("Invalid Command Keyword.");
         }
@@ -109,5 +111,13 @@ public class Parser {
         } catch (NumberFormatException e) {
             throw new InputException("Please provide a valid number to delete.");
         }
+    }
+
+    private static void handleFind(String command, TaskList tasks) throws InputException {
+        if (command.length() <= 5) {
+            throw new InputException("The keyword for find cannot be empty.");
+        }
+        String keyword = command.substring(5).trim();
+        tasks.findTasks(keyword);
     }
 }

@@ -5,7 +5,18 @@ import zayne.tasks.Deadline;
 import zayne.tasks.Event;
 import zayne.tasks.Todo;
 
+/**
+ * Deals with making sense of the user command.
+ */
 public class Parser {
+    /**
+     * Identifies the command type and calls the appropriate handler method.
+     * @param fullCommand The raw input string from the user.
+     * @param tasks The task list to be modified.
+     * @param ui The user interface for interaction.
+     * @param storage The storage object to trigger saves.
+     * @throws InputException If the user input does not match any known command or format.
+     */
     public static void parse(String fullCommand, TaskList tasks, Ui ui, Storage storage) throws InputException {
         if (fullCommand.equalsIgnoreCase("list")) {
             tasks.listTasks();
@@ -29,6 +40,12 @@ public class Parser {
         storage.save(tasks);
     }
 
+    /**
+     * Parses the index from a mark/unmark command and updates the task status.
+     * @param command The full user input string.
+     * @param tasks The list containing the task to be updated.
+     * @throws InputException If the task number is missing or invalid.
+     */
     private static void handleMarkCommand(String command, TaskList tasks) throws InputException {
         String[] parts = command.split(" ");
         if (parts.length != 2) {

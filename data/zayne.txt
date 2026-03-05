@@ -1,5 +1,6 @@
-T | 1 | alalal
-T | 1 | baba
 T | 0 | eat
 T | 0 | sleep
 T | 0 | rest
+T | 0 | sleep
+E | 0 | haha | 3 | 5
+D | 0 | hahaha | 6pm

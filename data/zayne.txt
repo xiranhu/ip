@@ -3,4 +3,4 @@ T | 1 | baba
 T | 0 | eat
 T | 0 | sleep
 T | 0 | rest
-T | 0 | drinnk water
+T | 1 | drinnk water

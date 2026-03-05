@@ -5,6 +5,9 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * Deals with loading tasks from the file and saving tasks in the file.
+ */
 public class Storage {
     private final String filePath;
 
@@ -12,6 +15,10 @@ public class Storage {
         this.filePath = filePath;
     }
 
+    /**
+     * Saves the current task list to the hard disk in a specific text format.
+     * @param tasks The TaskList containing tasks to be saved.
+     */
     public void save(TaskList tasks) {
         try {
             File f = new File(filePath);
@@ -26,6 +33,11 @@ public class Storage {
         }
     }
 
+    /**
+     * Loads the task list from the hard disk.
+     * @return An ArrayList of tasks loaded from the save file.
+     * @throws FileNotFoundException If the save file does not exist yet.
+     */
     public ArrayList<Task> load() throws FileNotFoundException {
         File f = new File(filePath);
         ArrayList<Task> loadedTasks = new ArrayList<>();

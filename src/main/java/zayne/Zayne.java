@@ -1,290 +1,46 @@
 package zayne;
-import java.util.ArrayList;
-import java.util.Scanner;
-import zayne.tasks.Task;
-import zayne.tasks.Todo;
-import zayne.tasks.Deadline;
-import zayne.tasks.Event;
+
 import zayne.exceptions.InputException;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.FileNotFoundException;
 
 public class Zayne {
-    private static void logo() { //method for printing logo
-        String logo = "______   ______  __   __  ___    __ _______ \n"
-        + "    //  ||    || ||   ||  || \\   || || \n"
-        + "   //   ||____|| ||___||  ||  \\  || ||_____ \n"
-        + "  //    ||    ||      ||  ||   \\ || || \n"
-        + "_//___  ||    ||  ____||  ||    \\_| ||_____ \n";
-        System.out.println("Hello from\n" + logo);
-    }
+    private Storage storage;
+    private TaskList tasks;
+    private Ui ui;
 
-    private static void greet() { //method for greeting user
-        printDivider();
-        System.out.println("Hello! I'm Zayne");
-        System.out.println("What can I do for you?");
-        printDivider();
-    }
-
-    private static void bye() { //method for saying bye to user
-        printDivider();
-        System.out.println("Bye. Hope to see you again soon!");
-        printDivider();
-    }
-
-    private static final String DIVIDER = "____________________________________________________________";
-    private static final int MAX_TASKS = 100; // maximum tasks by default
-    private static ArrayList<Task> tasks = new ArrayList<>();
-
-    private static void addTask(Task task) { //add a task to the array
-        if (tasks.size() < MAX_TASKS) {
-            tasks.add(task); // store the n^th task input at tasks[n]
-            System.out.println(" Got it. I've added this task:");
-            System.out.println("  " + task); //the task here is actually task.toString()
-            System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
-        } else {
-            System.out.println("Task list is full! Cannot add more tasks.");
-        }
-        saveTasks();
-    }
-
-    private static void listTasks() { //list out all tasks
-        System.out.println("Here are the tasks in your list: ");
-        for (int i = 0; i < tasks.size(); i++) {
-            System.out.println(" " + (i + 1) + "." + tasks.get(i)); //print index, status and task name
-        }
-    }
-
-    private static void handleMarkCommand(String command) throws InputException {
-        boolean isMark = command.startsWith("mark");
-        boolean isUnmark = command.startsWith("unmark");
-
-        String[] parts = command.split(" "); //split the command input whenever there is a space. split components are stored into an array called parts.
-
-        if (parts.length != 2) {  //handle invalid command
-            throw new InputException("Usage: mark/unmark <task number>");
-        }
-
+    public Zayne(String filePath) {
+        ui = new Ui();
+        storage = new Storage(filePath);
         try {
-            int index = Integer.parseInt(parts[1]) - 1; //when we list out, the index starts at 1; but in the array the index starts at 0; so we must -1 here to match the array index
-            if (!isValidIndex(index)) {
-                throw new InputException("Invalid task number. I don't have that many tasks!");
-            }
-            if (isMark) {
-                tasks.get(index).markDone();
-                System.out.println("Nice! I've marked this task as done:\n  " + tasks.get(index));
-            }
-            if (isUnmark){
-                tasks.get(index).unmark();
-                System.out.println("OK, I've marked this task as not done yet:\n  " + tasks.get(index));
-            }
-        } catch (NumberFormatException e) {
-            throw new InputException("Please provide a valid number after mark/unmark.");
-        }
-        saveTasks();
-    }
-
-    private static boolean isValidIndex(int index) {
-        return index >= 0 && index < tasks.size();
-    }
-
-    private static void printDivider() {
-        System.out.println(DIVIDER);
-    }
-
-    private static void handleTodo(String command) throws InputException {
-        String taskDescription = command.substring(5).trim(); // extracts everything after "todo " (5 characters including space) as the task taskDescription
-
-        if (taskDescription.isEmpty()) {
-            throw new InputException("The task description of a todo cannot be empty.");
-        }
-
-        addTask(new Todo(taskDescription));
-    }
-
-    private static void handleDeadline(String command) throws InputException {
-        int indexOfBy = command.indexOf("/by");
-
-        if (indexOfBy== -1) {
-            throw new InputException("Invalid deadline format. Use: deadline <desc> /by <date>");
-        }
-
-        String taskDescription = command.substring(9, indexOfBy).trim(); // starts from index 9 to skip "deadline ", extracts the task description
-        String by = command.substring(indexOfBy + 3).trim(); // +3 skips past "/by", extracts the deadline date/time
-
-        if (taskDescription.isEmpty() || by.isEmpty()) {
-            throw new InputException("The description and date of a deadline cannot be empty.");
-        }
-
-        addTask(new Deadline(taskDescription, by));
-    }
-
-    private static void handleEvent(String command) throws InputException {
-        int indexOfFrom = command.indexOf("/from");
-        int indexOfTo = command.indexOf("/to");
-
-        if (indexOfFrom == -1 || indexOfTo == -1 || indexOfTo <= indexOfFrom) {
-            throw new InputException("Invalid event format. Use: event <desc> /from <start> /to <end>");
-        }
-
-        String taskDescription = command.substring(6, indexOfFrom).trim();  // starts from index 6 to skip "event ", extracts the event description
-        String from = command.substring(indexOfFrom + 5, indexOfTo).trim(); // +5 skips past "/from", extracts the start time
-        String to = command.substring(indexOfTo + 3).trim();  // +3 skips past "/to", extracts the end time
-
-        if (taskDescription.isEmpty() || from.isEmpty() || to.isEmpty()) {
-            throw new InputException("Event details (desc, from, to) cannot be empty.");
-        }
-
-        addTask(new Event(taskDescription, from, to));
-    }
-
-    private static void handleDelete(String command) throws InputException {
-        String[] parts = command.split(" ");
-        if (parts.length != 2) {
-            throw new InputException("Usage: delete <task number>");
-        }
-        try {
-            int index = Integer.parseInt(parts[1]) - 1;
-            if (!isValidIndex(index)) {
-                throw new InputException("I can't delete what isn't there! Invalid task number.");
-            }
-            Task removedTask = tasks.remove(index);
-            System.out.println(" Noted. I've removed this task:");
-            System.out.println("   " + removedTask);
-            saveTasks();
-            System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
-        } catch (NumberFormatException e) {
-            throw new InputException("Please provide a valid number after 'delete'.");
-        }
-    }
-
-    private static void saveTasks() {
-        try {
-            File folder = new File("data");
-            if (!folder.exists()) {
-                folder.mkdir();
-            }
-
-            FileWriter fw = new FileWriter("data/zayne.txt");
-
-            for (int i = 0; i < tasks.size(); i++) {
-                Task t = tasks.get(i);
-                fw.write(t.toFileString() + "\n");
-            }
-
-            fw.close();
-        } catch (IOException e) {
-            System.out.println("Error saving: " + e.getMessage());
-        }
-    }
-
-    private static void loadTasks() {
-        File f = new File("data/zayne.txt");
-
-        if (!f.exists()) {
-            System.out.println("No saved tasks found. Starting with a fresh list!");
-            return;
-        }
-
-        try {
-            Scanner s = new Scanner(f);
-
-            while (s.hasNextLine()) {
-                String line = s.nextLine();
-                String[] parts = line.split(" \\| ");
-
-                String type = parts[0];
-                boolean isDone = parts[1].equals("1");
-                String description = parts[2];
-
-                Task task = null;
-
-                if (type.equals("T")) {
-                    task = new Todo(description);
-                }
-                else if (type.equals("D")) {
-                    String by = parts[3];
-                    task = new Deadline(description, by);
-                }
-                else if (type.equals("E")) {
-                    String from = parts[3];
-                    String to = parts[4];
-                    task = new Event(description, from, to);
-                }
-
-                if (task != null) {
-                    if (isDone) {
-                        task.markDone();
-                    }
-                    tasks.add(task);
-                }
-            }
-
-            s.close();
+            tasks = new TaskList(storage.load());
         } catch (FileNotFoundException e) {
-            System.out.println("Error loading file.");
+            tasks = new TaskList();
         }
     }
 
+    public void run() {
+        ui.showLogo();
+        ui.showWelcome();
+        boolean isExit = false;
+        while (!isExit) {
+            try {
+                String fullCommand = ui.readCommand();
+                if (fullCommand.equalsIgnoreCase("bye")) {
+                    ui.showBye();
+                    isExit = true;
+                } else {
+                    ui.printDivider();
+                    Parser.parse(fullCommand, tasks, ui, storage);
+                    ui.printDivider();
+                }
+            } catch (InputException e) {
+                ui.showError(e.getMessage());
+                ui.printDivider();
+            }
+        }
+    }
 
     public static void main(String[] args) {
-        loadTasks();
-        logo();
-        greet();
-
-        Scanner sc = new Scanner(System.in); // for user input
-        String command = " "; //stores user input String[] parts = command.split(" ");
-
-        while (true) {
-            command = sc.nextLine().trim();
-            try {
-                if (command.equalsIgnoreCase("bye")) {
-                    bye();
-                    break;
-                }
-                printDivider();
-                if (command.equalsIgnoreCase("list")) {
-                    listTasks();
-                    printDivider();
-                    continue;
-                }
-                if (command.startsWith("delete ")) {
-                    handleDelete(command);
-                    printDivider();
-                    continue;
-                }
-                if (command.startsWith("mark") || command.startsWith("unmark")) {
-                    handleMarkCommand(command);
-                    printDivider();
-                    continue;
-                }
-                if (command.startsWith("todo ")) {
-                    handleTodo(command);
-                    printDivider();
-                    continue;
-                }
-                if (command.startsWith("deadline ")) {
-                    handleDeadline(command);
-                    printDivider();
-                    continue;
-                }
-                if (command.startsWith("event ")) {
-                    handleEvent(command);
-                    printDivider();
-                    continue;
-                }
-                throw new InputException("Invalid Command Keyword.");
-            } catch (InputException e) {
-                System.out.println(" OOPS!!! " + e.getMessage());
-                printDivider();
-            }
-        }
-        sc.close();
+        new Zayne("data/zayne.txt").run();
     }
 }
-
-
-
-

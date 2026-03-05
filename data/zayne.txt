@@ -1,4 +1,6 @@
+T | 1 | alalal
+T | 1 | baba
 T | 0 | eat
+T | 0 | sleep
 T | 0 | rest
-T | 1 | ok nice
-E | 1 | ieie | 5 | 6
+T | 0 | drinnk water

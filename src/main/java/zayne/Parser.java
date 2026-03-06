@@ -11,54 +11,68 @@ import zayne.tasks.Todo;
 public class Parser {
     /**
      * Identifies the command type and calls the appropriate handler method.
-     * @param fullCommand The raw input string from the user.
-     * @param tasks The task list to be modified.
-     * @param ui The user interface for interaction.
-     * @param storage The storage object to trigger saves.
-     * @throws InputException If the user input does not match any known command or format.
      */
     public static void parse(String fullCommand, TaskList tasks, Ui ui, Storage storage) throws InputException {
-        if (fullCommand.equalsIgnoreCase("list")) {
+        // 1. Split the input into "command" and "everything else"
+        String[] parts = fullCommand.trim().split("\\s+", 2);
+        String commandWord = parts[0].toLowerCase(); // e.g., "todo", "findsw"
+        String arguments = parts.length > 1 ? parts[1] : ""; // The rest of the string
+
+        // 2. Exact match check using switch
+        switch (commandWord) {
+        case "list":
+            if (!arguments.isEmpty()) {
+                throw new InputException("The 'list' command does not take arguments.");
+            }
             tasks.listTasks();
-        } else if (fullCommand.startsWith("mark") || fullCommand.startsWith("unmark")) {
-            handleMarkCommand(fullCommand, tasks);
-        } else if (fullCommand.startsWith("todo")) {
-            handleTodo(fullCommand, tasks);
-        } else if (fullCommand.startsWith("deadline")) {
-            handleDeadline(fullCommand, tasks);
-        } else if (fullCommand.startsWith("event")) {
-            handleEvent(fullCommand, tasks);
-        } else if (fullCommand.startsWith("delete")) {
-            handleDelete(fullCommand, tasks);
-        } else if (fullCommand.startsWith("find")) {
-            handleFind(fullCommand, tasks);
-        } else {
-            throw new InputException("Invalid Command Keyword.");
+            break;
+
+        case "mark":
+        case "unmark":
+            handleMarkCommand(commandWord, arguments, tasks);
+            break;
+
+        case "todo":
+            handleTodo(arguments, tasks);
+            break;
+
+        case "deadline":
+            handleDeadline(arguments, tasks);
+            break;
+
+        case "event":
+            handleEvent(arguments, tasks);
+            break;
+
+        case "delete":
+            handleDelete(arguments, tasks);
+            break;
+
+        case "find":
+            handleFind(arguments, tasks);
+            break;
+
+        default:
+            // This now correctly catches "todo1", "findsw", etc.
+            throw new InputException("☹ OOPS!!! I'm sorry, but I don't know what that means :-(");
         }
 
-        // Save to file after every successful command that modifies the list
+        // Save to file after every successful command
         storage.save(tasks);
     }
 
-    /**
-     * Parses the index from a mark/unmark command and updates the task status.
-     * @param command The full user input string.
-     * @param tasks The list containing the task to be updated.
-     * @throws InputException If the task number is missing or invalid.
-     */
-    private static void handleMarkCommand(String command, TaskList tasks) throws InputException {
-        String[] parts = command.split(" ");
-        if (parts.length != 2) {
-            throw new InputException("Usage: mark/unmark <task number>");
+    private static void handleMarkCommand(String command, String args, TaskList tasks) throws InputException {
+        if (args.isEmpty()) {
+            throw new InputException("Usage: " + command + " <task number>");
         }
 
         try {
-            int index = Integer.parseInt(parts[1]) - 1;
+            int index = Integer.parseInt(args) - 1;
             if (index < 0 || index >= tasks.getSize()) {
                 throw new InputException("Invalid task number. I don't have that many tasks!");
             }
 
-            if (command.startsWith("mark")) {
+            if (command.equals("mark")) {
                 tasks.getTask(index).markDone();
                 System.out.println("Nice! I've marked this task as done:\n  " + tasks.getTask(index));
             } else {
@@ -66,29 +80,25 @@ public class Parser {
                 System.out.println("OK, I've marked this task as not done yet:\n  " + tasks.getTask(index));
             }
         } catch (NumberFormatException e) {
-            throw new InputException("Please provide a valid number after mark/unmark.");
+            throw new InputException("Please provide a valid number after " + command + ".");
         }
     }
 
-    private static void handleTodo(String command, TaskList tasks) throws InputException {
-        if (command.length() <= 5) {
+    private static void handleTodo(String args, TaskList tasks) throws InputException {
+        if (args.isEmpty()) {
             throw new InputException("The task description of a todo cannot be empty.");
         }
-        String description = command.substring(5).trim();
-        if (description.isEmpty()) {
-            throw new InputException("The task description of a todo cannot be empty.");
-        }
-        tasks.addTask(new Todo(description));
+        tasks.addTask(new Todo(args));
     }
 
-    private static void handleDeadline(String command, TaskList tasks) throws InputException {
-        int indexOfBy = command.indexOf("/by");
+    private static void handleDeadline(String args, TaskList tasks) throws InputException {
+        int indexOfBy = args.indexOf("/by");
         if (indexOfBy == -1) {
             throw new InputException("Invalid deadline format. Use: deadline <desc> /by <date>");
         }
 
-        String description = command.substring(9, indexOfBy).trim();
-        String by = command.substring(indexOfBy + 3).trim();
+        String description = args.substring(0, indexOfBy).trim();
+        String by = args.substring(indexOfBy + 3).trim();
 
         if (description.isEmpty() || by.isEmpty()) {
             throw new InputException("The description and date of a deadline cannot be empty.");
@@ -96,17 +106,17 @@ public class Parser {
         tasks.addTask(new Deadline(description, by));
     }
 
-    private static void handleEvent(String command, TaskList tasks) throws InputException {
-        int indexOfFrom = command.indexOf("/from");
-        int indexOfTo = command.indexOf("/to");
+    private static void handleEvent(String args, TaskList tasks) throws InputException {
+        int indexOfFrom = args.indexOf("/from");
+        int indexOfTo = args.indexOf("/to");
 
         if (indexOfFrom == -1 || indexOfTo == -1 || indexOfTo <= indexOfFrom) {
             throw new InputException("Invalid event format. Use: event <desc> /from <start> /to <end>");
         }
 
-        String description = command.substring(6, indexOfFrom).trim();
-        String from = command.substring(indexOfFrom + 5, indexOfTo).trim();
-        String to = command.substring(indexOfTo + 3).trim();
+        String description = args.substring(0, indexOfFrom).trim();
+        String from = args.substring(indexOfFrom + 5, indexOfTo).trim();
+        String to = args.substring(indexOfTo + 3).trim();
 
         if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
             throw new InputException("Event details (desc, from, to) cannot be empty.");
@@ -114,13 +124,12 @@ public class Parser {
         tasks.addTask(new Event(description, from, to));
     }
 
-    private static void handleDelete(String command, TaskList tasks) throws InputException {
-        String[] parts = command.split(" ");
-        if (parts.length != 2) {
+    private static void handleDelete(String args, TaskList tasks) throws InputException {
+        if (args.isEmpty()) {
             throw new InputException("Usage: delete <task number>");
         }
         try {
-            int index = Integer.parseInt(parts[1]) - 1;
+            int index = Integer.parseInt(args) - 1;
             if (index < 0 || index >= tasks.getSize()) {
                 throw new InputException("Invalid task number.");
             }
@@ -130,11 +139,10 @@ public class Parser {
         }
     }
 
-    private static void handleFind(String command, TaskList tasks) throws InputException {
-        if (command.length() <= 5) {
+    private static void handleFind(String args, TaskList tasks) throws InputException {
+        if (args.isEmpty()) {
             throw new InputException("The keyword for find cannot be empty.");
         }
-        String keyword = command.substring(5).trim();
-        tasks.findTasks(keyword);
+        tasks.findTasks(args);
     }
 }

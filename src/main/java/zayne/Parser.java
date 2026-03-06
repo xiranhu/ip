@@ -54,7 +54,7 @@ public class Parser {
 
         default:
             // This now correctly catches "todo1", "findsw", etc.
-            throw new InputException("☹ OOPS!!! I'm sorry, but I don't know what that means :-(");
+            throw new InputException("I'm sorry, but I don't know what that means :-(");
         }
 
         // Save to file after every successful command
